@@ -86,6 +86,18 @@ class CustomerControllerTest {
     }
 
     @Test
+    void testCustomerNotFoundById() throws Exception {
+        Customer customerWithId = createCustomerWithId();
+
+        Mockito.when(repository.findById(customerWithId.getId())).thenReturn(Optional.empty());
+
+        mvc.perform(get("/customers/" + customerWithId.getId()))
+            .andExpect(status().isNotFound());
+
+        Mockito.verify(repository).findById(customerWithId.getId());
+    }
+
+    @Test
     void testFindingAllCustomers() throws Exception {
         Customer customerWithId = createCustomerWithId();
         PageRequest pageable = PageRequest.of(0, 1);
