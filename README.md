@@ -1,6 +1,6 @@
 # POC: Spring Testing
 
-Writing unit tests to domain, persistence and web layers of a [REST API](https://en.wikipedia.org/wiki/Representational_state_transfer).
+Testing domain, persistence and web layers of a [REST API](https://en.wikipedia.org/wiki/Representational_state_transfer).
 
 The code related to domain is implemented using [javax.validation](https://javaee.github.io/javaee-spec/javadocs/javax/validation/constraints/package-summary.html) annotations and tested using [JUnit](https://github.com/junit-team/junit5).
 
