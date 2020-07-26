@@ -1,6 +1,7 @@
 package com.example.backend.customer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.codearte.jfairy.Fairy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -86,20 +88,25 @@ class CustomerControllerTest {
     @Test
     void testFindingAllCustomers() throws Exception {
         Customer customerWithId = createCustomerWithId();
-        List<Customer> customers = List.of(customerWithId);
         PageRequest pageable = PageRequest.of(0, 1);
-        PageImpl<Customer> page = new PageImpl<>(customers);
+        PageImpl<Customer> page = new PageImpl<>(List.of(customerWithId));
 
         Mockito.when(repository.findAll(pageable)).thenReturn(page);
 
-        mvc.perform(
+        String responseBody = mvc.perform(
             get("/customers")
                 .queryParam("page", "0")
                 .queryParam("size", "1")
         )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$").isArray());
+            .andExpect(jsonPath("$.customers").isArray())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
+        Customers customers = mapper.readValue(responseBody, Customers.class);
+
+        assertIterableEquals(customers.getCustomers(), page.getContent());
         Mockito.verify(repository).findAll(pageable);
     }
 
@@ -114,9 +121,11 @@ class CustomerControllerTest {
         Mockito.verify(repository).deleteById(customerWithId.getId());
     }
 
+    private final Fairy fairy = Fairy.create();
+
     private Customer createCustomerWithName() {
         Customer customer = new Customer();
-        customer.setName("John Smith");
+        customer.setName(fairy.person().getFullName());
         return customer;
     }
 

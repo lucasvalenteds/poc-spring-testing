@@ -1,6 +1,5 @@
 package com.example.backend.customer;
 
-import java.util.List;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -33,10 +32,10 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Customer>> findAllCustomer(Pageable pageable) {
+    public ResponseEntity<Customers> findAllCustomer(Pageable pageable) {
         return ResponseEntity
             .status(HttpStatus.OK)
-            .body(repository.findAll(pageable).getContent());
+            .body(new Customers(repository.findAll(pageable).getContent()));
     }
 
     @GetMapping("/{id}")
