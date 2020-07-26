@@ -30,6 +30,11 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", properties["version.junit"].toString())
 }
 
+configure<JavaPluginConvention> {
+    sourceCompatibility = JavaVersion.VERSION_14
+    targetCompatibility = JavaVersion.VERSION_14
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
     testLogging {
