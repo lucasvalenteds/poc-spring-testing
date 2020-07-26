@@ -13,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,10 +57,14 @@ class CustomerControllerTest {
         Mockito.when(repository.save(customerWithName))
             .thenReturn(customerWithId);
 
-        String responseBody = mvc.perform(post("/customers")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(mapper.writeValueAsString(customerWithName)))
+        String responseBody = mvc
+            .perform(
+                post("/customers")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(customerWithName))
+            )
             .andExpect(status().isCreated())
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -74,9 +80,13 @@ class CustomerControllerTest {
         Mockito.when(repository.findById(customerWithId.getId()))
             .thenReturn(Optional.of(customerWithId));
 
-        String responseBody = mvc.perform(get("/customers/" + customerWithId.getId())
-            .contentType(MediaType.APPLICATION_JSON))
+        String responseBody = mvc
+            .perform(
+                get("/customers/" + customerWithId.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
             .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -89,9 +99,14 @@ class CustomerControllerTest {
     void testCustomerNotFoundById() throws Exception {
         Customer customerWithId = createCustomerWithId();
 
-        Mockito.when(repository.findById(customerWithId.getId())).thenReturn(Optional.empty());
+        Mockito.when(repository.findById(customerWithId.getId()))
+            .thenReturn(Optional.empty());
 
-        mvc.perform(get("/customers/" + customerWithId.getId()))
+        mvc
+            .perform(
+                get("/customers/" + customerWithId.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
             .andExpect(status().isNotFound());
 
         Mockito.verify(repository).findById(customerWithId.getId());
@@ -105,12 +120,15 @@ class CustomerControllerTest {
 
         Mockito.when(repository.findAll(pageable)).thenReturn(page);
 
-        String responseBody = mvc.perform(
-            get("/customers")
-                .queryParam("page", "0")
-                .queryParam("size", "1")
-        )
+        String responseBody = mvc
+            .perform(
+                get("/customers")
+                    .queryParam("page", "" + pageable.getPageNumber())
+                    .queryParam("size", "" + pageable.getPageSize())
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
             .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.customers").isArray())
             .andReturn()
             .getResponse()
@@ -126,9 +144,14 @@ class CustomerControllerTest {
     void testRemovingValidCustomer() throws Exception {
         Customer customerWithId = createCustomerWithId();
 
-        mvc.perform(delete("/customers/" + customerWithId.getId())
-            .content(mapper.writeValueAsString(customerWithId)))
-            .andExpect(status().isAccepted());
+        mvc
+            .perform(
+                delete("/customers/" + customerWithId.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(customerWithId))
+            )
+            .andExpect(status().isNoContent())
+            .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
         Mockito.verify(repository).deleteById(customerWithId.getId());
     }

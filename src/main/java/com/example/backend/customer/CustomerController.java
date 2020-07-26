@@ -1,9 +1,11 @@
 package com.example.backend.customer;
 
 import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/customers")
+@RequestMapping(path = "/customers", produces = MediaType.APPLICATION_JSON_VALUE)
 public class CustomerController {
 
     private final CustomerRepository repository;
@@ -54,11 +56,12 @@ public class CustomerController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Customer> deleteCustomer(@PathVariable("id") long id) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") long id) {
         repository.deleteById(id);
 
         return ResponseEntity
-            .status(HttpStatus.ACCEPTED)
-            .body(null);
+            .status(HttpStatus.NO_CONTENT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .build();
     }
 }
